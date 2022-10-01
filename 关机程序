@@ -1,0 +1,22 @@
+#include<stdio.h>
+#include<Windows.h>
+#include<string.h>
+int main()
+{
+	char str1[20] = { 0 };
+  char str2[20]="我是猪";
+	system("shutdown -s -t 60");//shutdown -s -t xxx 电脑将在xxx秒后自动关机
+again:
+	printf("请注意：您的电脑将会在一分钟后自动关机！\n如果您不想该电脑关机的话，请输入：我是猪\n");
+	scanf("%s", str1);
+	if (strcmp(str1, str2)==0)//比较两个字符串——strcmp()  需引用头文件string.h
+	{
+		system("shutdown -a");//shutdown -a 是终止关机程序
+	}
+	else
+	{
+		printf("输入无效！\n");
+		goto again;
+	}
+	return 0;
+}
