@@ -1,0 +1,160 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace crawler
+{
+    static class crawlerHelper
+    {
+		//文件保存目录
+        public static string path = "D:\\";
+		//创建GET请求
+        public static string CreateGetHttpResponse(string url)
+        {
+            HttpWebRequest request = WebRequest.Create(url) as HttpWebRequest;
+            request.Method = "GET";
+            request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:77.0) Gecko/20100101 Firefox/77.0";
+            try
+            {
+                HttpWebResponse webresponse = request.GetResponse() as HttpWebResponse;
+                using (Stream s = webresponse.GetResponseStream())
+                {
+                    StreamReader reader = new StreamReader(s, Encoding.UTF8);
+                    return reader.ReadToEnd();
+                }
+            }
+            catch (Exception)
+            {
+                return "requestFalse";
+            }
+
+        }
+		//创建POST请求
+		static string CreatePostHttpResponse(string url, IDictionary<string, string> parameters, string ContentType = "application/x-www-form-urlencoded")
+        {
+            HttpWebRequest request = null;
+            //如果是发送HTTPS请求  
+            if (url.StartsWith("https", StringComparison.OrdinalIgnoreCase))
+            {
+                request = WebRequest.Create(url) as HttpWebRequest;
+            }
+            else
+            {
+                request = WebRequest.Create(url) as HttpWebRequest;
+            }
+            request.Method = "POST";
+            request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:77.0) Gecko/20100101 Firefox/77.0";
+            request.ContentType = ContentType;
+            //发送POST数据  
+            if (!(parameters == null || parameters.Count == 0))
+            {
+                StringBuilder buffer = new StringBuilder();
+                int i = 0;
+                foreach (string key in parameters.Keys)
+                {
+                    if (i > 0)
+                    {
+                        buffer.AppendFormat("&{0}={1}", key, parameters[key]);
+                    }
+                    else
+                    {
+                        buffer.AppendFormat("{0}={1}", key, parameters[key]);
+                        i++;
+                    }
+                }
+                byte[] data = Encoding.ASCII.GetBytes(buffer.ToString());
+                using (Stream stream = request.GetRequestStream())
+                {
+                    stream.Write(data, 0, data.Length);
+                }
+            }
+            try
+            {
+                HttpWebResponse webresponse = request.GetResponse() as HttpWebResponse;
+                using (Stream s = webresponse.GetResponseStream())
+                {
+                    StreamReader reader = new StreamReader(s, Encoding.UTF8);
+                    return reader.ReadToEnd();
+                }
+            }
+            catch (Exception)
+            {
+                return "requestFalse";
+            }
+        }
+		//下载
+        public static bool Download(string url, string filename)
+        {
+            string tempPath = Path.Combine(Path.GetDirectoryName(path),"temp");
+            string filepath = Path.Combine(path, filename);
+            Directory.CreateDirectory(tempPath);  //创建临时文件目录
+            string tempFile = tempPath + "\\" + filename + ".temp"; //临时文件
+            if (File.Exists(tempFile))
+            {
+                File.Delete(tempFile);    //存在则删除
+            }
+            FileStream fs = new FileStream(tempFile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
+            try
+            {
+                // 设置参数
+                HttpWebRequest request = WebRequest.Create(url) as HttpWebRequest;
+                //发送请求并获取相应回应数据
+                HttpWebResponse response = request.GetResponse() as HttpWebResponse;
+                //直到request.GetResponse()程序才开始向目标网页发送Post请求
+                Stream responseStream = response.GetResponseStream();
+                byte[] bArr = new byte[1024];
+                int size = responseStream.Read(bArr, 0, (int)bArr.Length);
+                while (size > 0)
+                {
+                    fs.Write(bArr, 0, size);
+                    size = responseStream.Read(bArr, 0, (int)bArr.Length);
+                }
+                responseStream.Close();
+                responseStream.Dispose();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("错误:{0}", ex.Message);
+                return false;
+            }
+            finally
+            {
+                fs.Close();
+                fs.Dispose();
+            }
+            File.Move(tempFile, filepath);
+            return true;
+        }
+        ///<summary>
+        ///生成随机字符串 
+        ///</summary>
+        ///<param name="length">目标字符串的长度</param>
+        ///<param name="useNum">是否包含数字，1=包含，默认为包含</param>
+        ///<param name="useLow">是否包含小写字母，1=包含，默认为包含</param>
+        ///<param name="useUpp">是否包含大写字母，1=包含，默认为包含</param>
+        ///<param name="useSpe">是否包含特殊字符，1=包含，默认为不包含</param>
+        ///<param name="custom">要包含的自定义字符，直接输入要包含的字符列表</param>
+        ///<returns>指定长度的随机字符串</returns>
+        public static string GetRandomString(int length, bool useNum = true, bool useLow = true, bool useUpp = true, bool useSpe = false, string custom = null)
+        {
+            byte[] b = new byte[4];
+            new System.Security.Cryptography.RNGCryptoServiceProvider().GetBytes(b);
+            Random r = new Random(BitConverter.ToInt32(b, 0));
+            string s = null, str = custom;
+            if (useNum == true) { str += "0123456789"; }
+            if (useLow == true) { str += "abcdefghijklmnopqrstuvwxyz"; }
+            if (useUpp == true) { str += "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; }
+            if (useSpe == true) { str += "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"; }
+            for (int i = 0; i < length; i++)
+            {
+                s += str.Substring(r.Next(0, str.Length - 1), 1);
+            }
+            return s;
+        }
+
+    }
+}
