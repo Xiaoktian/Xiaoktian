@@ -1,0 +1,35 @@
+有一个八层灯塔，
+每层所点灯数都等于该层上一层的两倍，一共有765盏灯，
+求塔底灯数
+（采用穷举法。如，假设顶层有1个、2个、…、n个，则分别计算对应的灯数有多少，直到满足总灯数为765）。
+
+//765盏灯
+
+int main()
+{
+	int lamp = 0;
+	int storey = 0;
+	int top = 1;
+	int add_lamp = 1;
+	while(1)
+	{
+		add_lamp = top;
+		lamp = top;
+		for (storey = 1; storey <=7; storey++)
+		{
+			lamp = lamp * 2;
+			add_lamp = lamp + add_lamp;
+		}
+		if (add_lamp == 765)
+		{
+			printf("顶层的灯数%d，塔底灯数为%d\n",top, lamp);
+			break;
+		}
+		else
+		{
+			top++;
+		}
+	}
+
+	return 0;
+}
