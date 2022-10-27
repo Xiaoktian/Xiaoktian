@@ -1,0 +1,47 @@
+using HtmlAgilityPack;
+using System;
+using System.IO;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using NPOI.XSSF.UserModel;
+
+namespace pachong_work
+{
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            List<string> movieItems = new List<string>();
+            string url = "https://uump4.net/";
+            //获取网址的网页源代码
+            string htmlContext=crawlerHelper.CreateGetHttpResponse(url);
+            //新建一个htmlAgilityPack对象
+            HtmlDocument doc=new HtmlDocument();
+            //装载网页内容
+            doc.LoadHtml(htmlContext);
+            //HtmlNode movieTitleNode = doc.DocumentNode.SelectSingleNode("/html/body/div[2]/div[1]/div[1]/div[3]");//填入网页的内容地址
+            //var node = doc.DocumentNode;
+            //var result = node.SelectNodes(".//li");
+            HtmlNode node = doc.DocumentNode.SelectSingleNode(".//html/body/main/div[1]/div[3]/div[1]/div[2]/div[1]//ul");
+            HtmlNodeCollection li = node.SelectNodes("li");
+            string movieYear, movieCountry, movieType, movieText;
+            foreach(HtmlNode liNode in li)
+            {
+                HtmlNodeCollection aNode = liNode.SelectNodes("div[2]/a");
+                if(aNode.Count != 4)
+                {
+                    //ad
+                    continue;
+                }
+                else
+                {
+                    string movieDetail = string.Format("{0},{1},{2},{3}", aNode[0].InnerText, aNode[1].InnerText, aNode[2].InnerText, aNode[3].InnerText);
+                    movieItems.Add(movieDetail);
+                }
+
+            }
+        }
+   }
+}
